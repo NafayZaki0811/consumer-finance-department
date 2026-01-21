@@ -135,18 +135,16 @@ export default function Page() {
       )}
 
       {/* Delete Modal */}
-      {showDelete && (
-        <ModalDelete
-          onClose={() => setShowDelete(false)}
-          onSubmit={() => {
-            setItems((prev) => prev.filter((item) => item.label !== label));
-            setLabel("");
-            setShowDelete(false);
-          }}
-          label={label}
-          setLabel={setLabel}
-        />
-      )}
+    {showDelete && (
+  <ModalDelete
+    onClose={() => setShowDelete(false)}
+    onSubmit={(label) => {
+      setItems((prev) => prev.filter((item) => item.label !== label));
+    }}
+    items={items}
+  />
+)}
+
     </main>
   );
 }
@@ -197,31 +195,71 @@ function ModalAdd({ onClose, onSubmit, label, href, setLabel, setHref }: any) {
 }
 
 // Delete Modal Component
-function ModalDelete({ onClose, onSubmit, label, setLabel }: any) {
+function ModalDelete({
+  onClose,
+  onSubmit,
+  items,
+}: {
+  onClose: () => void;
+  onSubmit: (label: string) => void;
+  items: { label: string; href: string }[];
+}) {
+  const [selectedLabel, setSelectedLabel] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 w-96 shadow-2xl relative">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Delete Container</h2>
+      <div className="bg-white rounded-2xl p-8 w-96 shadow-2xl">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          Delete Short Cut
+        </h2>
 
-        <input
-          placeholder="Enter Short Cut Name to Delete"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          className="w-full border border-gray-300 p-3 rounded-lg mb-6 focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-gray-400 text-black"
-        />
+        {/* Dropdown */}
+        <select
+          value={selectedLabel}
+          onChange={(e) => {
+            setSelectedLabel(e.target.value);
+            setConfirmDelete(false);
+          }}
+          className="w-full border border-gray-300 p-3 rounded-lg mb-4 text-black focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          <option value="">Select Short Cut</option>
+          {items.map((item, index) => (
+            <option key={index} value={item.label}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Confirmation Message */}
+        {confirmDelete && (
+          <p className="text-red-600 text-sm mb-4">
+            Are you sure you want to delete <b>{selectedLabel}</b>?
+          </p>
+        )}
 
         <div className="flex justify-end gap-4">
           <button
             onClick={onClose}
-            className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-300"
+            className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
           >
             Cancel
           </button>
+
           <button
-            onClick={onSubmit}
-            className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-300"
+            onClick={() => {
+              if (!selectedLabel) return;
+
+              if (!confirmDelete) {
+                setConfirmDelete(true);
+              } else {
+                onSubmit(selectedLabel);
+                onClose();
+              }
+            }}
+            className="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
           >
-            Delete
+            {confirmDelete ? "Yes, Delete" : "Delete"}
           </button>
         </div>
       </div>
